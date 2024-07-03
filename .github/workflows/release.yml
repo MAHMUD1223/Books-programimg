@@ -3,7 +3,7 @@ name: Create Release on Push
 on:
   push:
     branches:
-      - main
+      - main  # Change this to your default branch if it's different
 
 jobs:
   create-release:
@@ -17,6 +17,9 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: '14'
+
+    - name: Install GitHub CLI
+      run: sudo apt-get install gh
 
     - name: Get commit message
       id: get_commit_message
@@ -33,7 +36,7 @@ jobs:
       with:
         tag_name: v${{ github.run_number }}
         release_name: Release ${{ github.run_number }}
-        body: "${{ env.COMMIT_MESSAGE }}"
+        body: ${{ env.COMMIT_MESSAGE }}
         draft: false
         prerelease: false
 
@@ -46,3 +49,13 @@ jobs:
         asset_path: ./repo.zip
         asset_name: repo.zip
         asset_content_type: application/zip
+
+    - name: Delete older releases
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+        releases=$(gh release list --limit 100 | tail -n +4 | awk '{print $1}')
+        for release in $releases; do
+          gh release delete "$release" --yes
+        done

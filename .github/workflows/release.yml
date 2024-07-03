@@ -24,7 +24,7 @@ jobs:
         echo "commit_message=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
 
     - name: Create ZIP file
-      run: zip -r repo.zip . -x "*.git*"
+      run: zip -r books.zip . -x "*.git*"
 
     - name: Create GitHub Release
       id: create_release

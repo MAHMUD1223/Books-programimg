@@ -23,7 +23,8 @@ jobs:
 
     - name: Get commit message
       id: get_commit_message
-      run: echo "commit_message=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
+      run: |
+        echo "commit_message=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
 
     - name: Create ZIP file
       run: zip -r repo.zip . -x "*.git*"
@@ -54,7 +55,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh auth status || echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+        echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
         releases=$(gh release list --limit 100 | tail -n +4 | awk '{print $1}')
         if [ -n "$releases" ]; then
           for release in $releases; do

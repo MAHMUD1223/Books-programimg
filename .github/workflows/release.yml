@@ -23,7 +23,7 @@ jobs:
 
     - name: Get commit message
       id: get_commit_message
-      run: echo "COMMIT_MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+      run: echo "commit_message=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
 
     - name: Create ZIP file
       run: zip -r repo.zip . -x "*.git*"
@@ -36,7 +36,7 @@ jobs:
       with:
         tag_name: v${{ github.run_number }}
         release_name: Release ${{ github.run_number }}
-        body: ${{ env.COMMIT_MESSAGE }}
+        body: ${{ steps.get_commit_message.outputs.commit_message }}
         draft: false
         prerelease: false
 
@@ -54,8 +54,12 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh auth status || gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+        gh auth status || echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
         releases=$(gh release list --limit 100 | tail -n +4 | awk '{print $1}')
-        for release in $releases; do
-          gh release delete "$release" --yes
-        done
+        if [ -n "$releases" ]; then
+          for release in $releases; do
+            gh release delete "$release" --yes
+          done
+        else
+          echo "No old releases to delete."
+        fi

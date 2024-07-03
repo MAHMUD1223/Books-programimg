@@ -13,6 +13,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Get commit message
+      id: get_commit_message
+      run: echo "COMMIT_MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+
     - name: Create ZIP file
       run: zip -r repo.zip . -x "*.git*"
 
@@ -24,6 +33,7 @@ jobs:
       with:
         tag_name: v${{ github.run_number }}
         release_name: Release ${{ github.run_number }}
+        body: "${{ env.COMMIT_MESSAGE }}"
         draft: false
         prerelease: false
 
